@@ -423,7 +423,9 @@ class component final : public generic_component {
 
 public:
   void post_load() override {
-    if (game::is_client()) {
+    // Disabled in the Legacy build: no Discord presence.
+    constexpr bool presence_disabled = true;
+    if (!presence_disabled && game::is_client()) {
       start_time = time(nullptr);
 
       DiscordEventHandlers handlers{};
@@ -440,7 +442,7 @@ public:
   }
   void post_unpack() override { lua::register_lua_libs(); }
 
-  void pre_destroy() override { Discord_Shutdown(); }
+  void pre_destroy() override {}
 };
 } // namespace discord
 

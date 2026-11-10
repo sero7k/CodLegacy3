@@ -922,6 +922,12 @@ std::wstring quote_process_argument(const std::wstring_view argument) {
 }
 
 bool launch_beta_server_if_needed() {
+  // Disabled in the Legacy build: it downloads a server binary from the Ezz
+  // update server.
+  constexpr bool beta_server_disabled = true;
+  if (beta_server_disabled)
+    return false;
+
   if (utils::flags::has_flag("beta")) {
     const utils::nt::library self =
         utils::nt::library::get_by_address(launch_beta_server_if_needed);
@@ -1050,9 +1056,8 @@ int main(int argc, char *argv[]) {
         const std::filesystem::path &appdata_path = game::get_appdata_path();
         const std::string appdata_path_str = appdata_path.generic_string();
         const char *err = utils::string::va(
-            "Missing required data in %s; Initial data download has failed. "
-            "BOIII needs an active internet connection "
-            "for the first time you launch it.",
+            "Missing required data in %s. The updater is switched off in this "
+            "build, so the launcher data has to be copied there by hand.",
             appdata_path_str.c_str());
         throw std::runtime_error(err);
       }
