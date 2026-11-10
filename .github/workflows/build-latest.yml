@@ -1,0 +1,51 @@
+name: BuildLatest
+
+on:
+  push:
+    branches: [ci-build]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+          lfs: false
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v3
+        with:
+          vs-version: "[18.0,)"
+
+      - name: Install premake5
+        uses: Jarod42/install-premake5@v7
+        with:
+          msdev: vs2026
+
+      - name: Generate project files
+        run: premake5 vs2026
+
+      - name: Build Release
+        run: msbuild /m /v:minimal /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=ClangCL build/boiii.slnx
+
+      - name: Push the exe to the latest-build branch
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP "lb"
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          Copy-Item build/bin/x64/Release/boiii.exe (Join-Path $dir "boiii.exe")
+          Set-Content (Join-Path $dir "BUILD.txt") "${{ github.sha }}"
+          Set-Location $dir
+          git init -q
+          git checkout -q -b latest-build
+          git config user.email "ci@users.noreply.github.com"
+          git config user.name "ci"
+          git add -A
+          git commit -q -m "Build of ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" latest-build
