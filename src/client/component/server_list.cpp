@@ -284,8 +284,8 @@ void add_lan_server_from_string(const std::string &in) {
 } // namespace
 
 static std::vector<game::net::netadr_t> master_server_hosts{};
-constexpr std::string_view default_hosts[] = {"master.ezz.lol:20810",
-                                              "m.ezz.lol:20810"};
+// No master server in the Legacy build (there is nothing to call home to).
+constexpr std::array<std::string_view, 0> default_hosts{};
 inline void parse_master_server_hosts() {
 
   std::string data;
@@ -295,6 +295,9 @@ inline void parse_master_server_hosts() {
     bool read_first = false;
     for (const std::string &line : lines) {
       const std::string l = normalize_lan_input(line);
+      if (l.find("ezz.lol") != std::string::npos) {
+        continue;
+      }
       if (!l.empty()) {
         if (!read_first) {
           master_server_hosts.clear();

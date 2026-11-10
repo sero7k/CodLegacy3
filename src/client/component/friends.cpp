@@ -82,16 +82,8 @@ std::string get_preferred_local_ip() {
 }
 
 void fetch_public_ip() {
-  try {
-    std::optional<std::string> resp =
-        utils::http::get_data("https://api.ipify.org", {}, {}, 1);
-    if (resp.has_value() && !resp->empty()) {
-      std::lock_guard lock(public_ip_mutex);
-      cached_public_ip = *resp;
-      public_ip_fetched.store(true);
-    }
-  } catch (...) {
-  }
+  // Disabled in the Legacy build: no public-IP lookup (api.ipify.org).
+  public_ip_fetched.store(true);
 }
 
 struct friend_state {

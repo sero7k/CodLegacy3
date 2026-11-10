@@ -38,6 +38,13 @@ void report_updater_error(const char *message) {
 } // namespace
 
 void update(bool force) {
+  // Disabled in the Legacy build: nothing downloads over our files and nothing
+  // contacts the Ezz update server. (Our own updater will replace this.)
+  (void)force;
+  constexpr bool updater_disabled = true;
+  if (updater_disabled)
+    return;
+
   if (force ||
       (!utils::flags::has_flag("noupdate") &&
        (utils::flags::has_flag("update") || utils::flags::has_flag("beta") ||
@@ -62,7 +69,7 @@ class component final : public generic_component {
 
 public:
   component() {
-    this->update_thread_ = std::thread([] { update(); });
+    // (No update thread: see update().)
   }
 
   void pre_destroy() override { join(); }
